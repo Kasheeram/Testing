@@ -1,19 +1,21 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="22222" systemVersion="23A344" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithSwiftData="YES" userDefinedModelVersionIdentifier="">
     <entity name="Documents" representedClassName="Documents" syncable="YES" codeGenerationType="class">
-        <attribute name="date" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="date" optional="YES" attributeType="String"/>
         <attribute name="descriptions" optional="YES" attributeType="String"/>
-        <fetchedProperty name="fetchedProperty" optional="YES">
-            <fetchRequest name="fetchedPropertyFetchRequest" entity="Documents"/>
-        </fetchedProperty>
+        <attribute name="id" optional="YES" attributeType="String"/>
+        <relationship name="headlines" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Headlines" inverseName="documents" inverseEntity="Headlines"/>
+        <relationship name="multimedias" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Multimedias" inverseName="documents" inverseEntity="Multimedias"/>
     </entity>
     <entity name="Headlines" representedClassName="Headlines" syncable="YES" codeGenerationType="class">
         <attribute name="main" optional="YES" attributeType="String"/>
+        <relationship name="documents" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Documents" inverseName="headlines" inverseEntity="Documents"/>
     </entity>
     <entity name="Item" representedClassName="Item" syncable="YES" codeGenerationType="class">
         <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
     </entity>
     <entity name="Multimedias" representedClassName="Multimedias" syncable="YES" codeGenerationType="class">
         <attribute name="image" optional="YES" attributeType="String"/>
+        <relationship name="documents" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Documents" inverseName="multimedias" inverseEntity="Documents"/>
     </entity>
 </model>

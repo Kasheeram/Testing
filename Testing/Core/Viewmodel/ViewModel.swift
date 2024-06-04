@@ -6,6 +6,8 @@
 //
 
 import Foundation
+import Network
+import SwiftUI
 
 @MainActor
 class ViewModel: ObservableObject {
@@ -15,23 +17,43 @@ class ViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var shouldShowError = false
     
-    let serviceProtocol: ServiceProtocols
+    private var isConnected = true
+    private let monitor = NWPathMonitor()
     
-    init(serviceProtocol: ServiceProtocols = WebServices(url: .articalSearch)) {
+    let serviceProtocol: ServiceProtocols
+    let databaseHandler: CoreDataDelegate
+    
+    init(serviceProtocol: ServiceProtocols = WebServices(url: .articalSearch), databaseHandler: CoreDataDelegate = CoreDataManager()) {
+        // Dependiency Inverse
         self.serviceProtocol = serviceProtocol
+        self.databaseHandler = databaseHandler
+        startMonitoring()
     }
     
     func fetchDocuments() async {
-        isLoading = true
-        do {
-            let result  = try await serviceProtocol.getGenericData(returnType: DocsResponse.self)
-            self.docs = result.response?.docs ?? []
-            self.mapData()
-            self.isLoading = false
-        } catch {
-            self.isLoading = false
-            self.shouldShowError = true
-            self.errorMessage = (error as? CumstomError)?.localizeDescription ?? error.localizedDescription
+        if isConnected {
+            isLoading = true
+            do {
+                let result  = try await serviceProtocol.getGenericData(returnType: DocsResponse.self)
+                self.docs = result.response?.docs ?? []
+                self.mapData()
+                self.isLoading = false
+            } catch {
+                self.isLoading = false
+                self.shouldShowError = true
+                self.errorMessage = (error as? CumstomError)?.localizeDescription ?? error.localizedDescription
+            }
+        } else {
+            do {
+                let result = try await databaseHandler.getGenericData(returnType: [Doc].self)
+                self.docs = result
+                self.mapData()
+                self.isLoading = false
+            } catch {
+                self.isLoading = false
+                self.shouldShowError = true
+                self.errorMessage = (error as? CumstomError)?.localizeDescription ?? error.localizedDescription
+            }
         }
     }
     
@@ -49,5 +71,29 @@ class ViewModel: ObservableObject {
             return date1 < date2
         }
         self.documents = docs.compactMap({ListItemCellViewModel(doc: $0)})
+        
+        // Call saveToCoreData to save the fetched data to Core Data
+        if isConnected {
+            databaseHandler.saveDataToCoreData(docs: docs)
+        }
+        
+    }
+    
+    func startMonitoring() {
+        monitor.pathUpdateHandler = { [weak self] path in
+            guard let self = self else { return } // Unwrap self safely
+            
+            Task {
+                await self.updateIsConnected(path.status)
+            }
+        }
+        
+        let queue = DispatchQueue(label: "NetworkMonitor")
+        monitor.start(queue: queue)
+    }
+    
+    @MainActor
+    func updateIsConnected(_ status: NWPath.Status) {
+        isConnected = status == .satisfied
     }
 }

@@ -23,7 +23,6 @@ class ListItemCellViewModel: Identifiable {
     
     private func getFormattedDate(date: String) -> String {
         if let date = Helper.customFormattedDateString(from: date) {
-            print(date)
             return "\(date)"
         }
         return ""

@@ -23,7 +23,7 @@ enum APIURL {
     
     var description: String {
         switch self {
-        case .articalSearch: return "Articals"
+        case .articalSearch: return "Artical"
         }
     }
 }

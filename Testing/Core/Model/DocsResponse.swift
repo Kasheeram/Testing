@@ -16,7 +16,8 @@ struct Response: Codable {
     let docs: [Doc]?
 }
 
-struct Doc: Codable {
+struct Doc: Codable, Identifiable {
+    let id: String?
     let description: String?
     let title: Headline?
     let date: String?
@@ -27,6 +28,7 @@ struct Doc: Codable {
         case date = "pub_date"
         case title = "headline"
         case image = "multimedia"
+        case id = "_id"
     }
 }
 

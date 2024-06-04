@@ -12,25 +12,25 @@ struct ListView: View {
     
     var body: some View {
         NavigationStack {
-                ScrollView {
-                    LazyVStack {
-                        ForEach(viewModel.documents) { doc in
-                            ListItemView(docItem: doc)
-                            
-                        }
+            ScrollView {
+                LazyVStack {
+                    ForEach(viewModel.documents) { doc in
+                        ListItemView(docItem: doc)
+                        
                     }
                 }
-                .overlay(
-                    Group {
-                        // show loading view when fetching data from server
-                        if viewModel.isLoading {
-                            ProgressView()
-                                .scaleEffect(2.0, anchor: .center)
-                                .progressViewStyle(CircularProgressViewStyle(tint: .black))
-                        }
+            }
+            .overlay(
+                Group {
+                    // show loading view when fetching data from server
+                    if viewModel.isLoading {
+                        ProgressView()
+                            .scaleEffect(2.0, anchor: .center)
+                            .progressViewStyle(CircularProgressViewStyle(tint: .black))
                     }
-                )
-                .navigationTitle(APIURL.articalSearch.description)
+                }
+            )
+            .navigationTitle(APIURL.articalSearch.description)
         }
         .task {
             await viewModel.fetchDocuments()
