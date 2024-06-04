@@ -1,4 +1,4 @@
-Test project includes the follow things
+This small project includes the follow things
 1. MVVM Architecture
 2. Use solid principles
 3. Using Generic
