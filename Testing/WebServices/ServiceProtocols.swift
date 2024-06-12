@@ -8,8 +8,15 @@
 import Foundation
 
 protocol ServiceProtocols {
-    func getGenericData<T: Codable>(returnType: T.Type) async throws -> T
+    func getGenericData<T: Codable>(url: APIURL?, returnType: T.Type) async throws -> T
 }
+
+extension ServiceProtocols {
+    func getGenericData<T: Codable>(returnType: T.Type) async throws -> T {
+        return try await getGenericData(url: nil, returnType: returnType)
+    }
+}
+
 
 
 enum APIURL {

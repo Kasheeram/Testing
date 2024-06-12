@@ -16,7 +16,7 @@ struct Response: Codable {
     let docs: [Doc]?
 }
 
-struct Doc: Codable, Identifiable {
+struct Doc: Codable {
     let id: String?
     let description: String?
     let title: Headline?

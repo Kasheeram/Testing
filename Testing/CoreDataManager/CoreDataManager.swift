@@ -9,7 +9,7 @@ import Foundation
 import CoreData
 
 // Protocol inheritance
-protocol CoreDataDelegate: ServiceProtocols {
+protocol CoreDataDelegate: ServiceProtocols { // low-level class
     func saveDataToCoreData(docs: [Doc])
 }
 
@@ -21,39 +21,39 @@ class CoreDataManager: CoreDataDelegate {
         self.context = context
     }
     
-    func getGenericData<T: Codable>(returnType: T.Type) async throws -> T {
+    func getGenericData<T: Codable>(url: APIURL?, returnType: T.Type) async throws -> T {
         // Perform Core Data operations in a background context
         let result = try await withCheckedThrowingContinuation { continuation in
-               DispatchQueue.global().async {
-                   let fetchRequest: NSFetchRequest<Documents> = Documents.fetchRequest()
-                   do {
-                       let docEntities = try self.context.fetch(fetchRequest)
-                       // Convert fetched Core Data objects to [Doc] model objects
-                       let docs: [Doc] = docEntities.map { docEntity in
-                           let headline = Headline(main: docEntity.headlines?.main)
-                           let multimedia = docEntity.multimedias?.compactMap { multimediaEntity in
-                               return Multimedia(image: (multimediaEntity as AnyObject).image as? String)
-                           }
-                           
-                           return Doc(id: docEntity.id, description: docEntity.descriptions,
-                                      title: headline,
-                                      date: docEntity.date,
-                                      image: multimedia)
-                       }
-                       
-                       if let result = docs as? T {
-                           continuation.resume(returning: result)
-                       } else {
-                           continuation.resume(throwing: CumstomError.invalidRespone)
-                       }
-                   } catch {
-                       continuation.resume(throwing: error)
-                   }
-               }
-           }
-           return result
+            DispatchQueue.global().async {
+                let fetchRequest: NSFetchRequest<Documents> = Documents.fetchRequest()
+                do {
+                    let docEntities = try self.context.fetch(fetchRequest)
+                    // Convert fetched Core Data objects to [Doc] model objects
+                    let docs: [Doc] = docEntities.map { docEntity in
+                        let headline = Headline(main: docEntity.headlines?.main)
+                        let multimedia = docEntity.multimedias?.compactMap { multimediaEntity in
+                            return Multimedia(image: (multimediaEntity as AnyObject).image as? String)
+                        }
+                        
+                        return Doc(id: docEntity.id, description: docEntity.descriptions,
+                                   title: headline,
+                                   date: docEntity.date,
+                                   image: multimedia)
+                    }
+                    
+                    if let result = docs as? T {
+                        continuation.resume(returning: result)
+                    } else {
+                        continuation.resume(throwing: CumstomError.invalidRespone)
+                    }
+                } catch {
+                    continuation.resume(throwing: error)
+                }
+            }
+        }
+        return result
     }
-
+    
     func saveDataToCoreData(docs: [Doc]) {
         for doc in docs {
             if checkIfDataAvailable(withId: doc.id) {

@@ -7,17 +7,16 @@
 
 import Foundation
 
-class WebServices: ServiceProtocols {
+class WebServices: ServiceProtocols { // low-level class 
     
-    private let url: APIURL
     private let urlSession: URLSession
     
-    init(url: APIURL, urlSession: URLSession = .shared) {
-        self.url = url
+    init(urlSession: URLSession = .shared) {
         self.urlSession = urlSession
     }
     
-    func getGenericData<T: Codable>(returnType: T.Type) async throws -> T {
+    func getGenericData<T: Codable>(url: APIURL?, returnType: T.Type) async throws -> T {
+        guard let url = url else { throw CumstomError.invalidUrl }
         let fullURL = AppConstant.baseURL + url.value + "&api-key=\(AppConstant.apiKey)"
         guard let url = URL(string: fullURL) else {
             throw CumstomError.invalidUrl

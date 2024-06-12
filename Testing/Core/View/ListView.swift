@@ -13,10 +13,22 @@ struct ListView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                LazyVStack {
+                LazyVStack { // we can remove the Identifiable from ListItemCellViewModel but you need to use
+                    // ForEach(viewModel.documents, id: \.self), because we are using Hashable that will create a unique id by hasher.combine(id)
                     ForEach(viewModel.documents) { doc in
-                        ListItemView(docItem: doc)
-                        
+                        ListItemView(
+                            docItem: doc,
+                            isSelected: Binding(
+                                get: { viewModel.selectedDocuments.contains(doc) },
+                                set: { isSelected in
+                                    if isSelected {
+                                        viewModel.selectedDocuments.insert(doc)
+                                    } else {
+                                        viewModel.selectedDocuments.remove(doc)
+                                    }
+                                }
+                            )
+                        )
                     }
                 }
             }
@@ -31,6 +43,12 @@ struct ListView: View {
                 }
             )
             .navigationTitle(APIURL.articalSearch.description)
+            Button("Show selected articles", action: {
+                viewModel.selectedDocuments.forEach { item in
+                    print(item.title)
+                }
+            })
+            
         }
         .task {
             await viewModel.fetchDocuments()

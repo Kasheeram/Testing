@@ -10,12 +10,13 @@ import Network
 import SwiftUI
 
 @MainActor
-class ViewModel: ObservableObject {
+class ViewModel: ObservableObject { // high-level class
     @Published var docs: [Doc] = []
     @Published var documents: [ListItemCellViewModel] = []
     @Published var errorMessage: String?
     @Published var isLoading = false
     @Published var shouldShowError = false
+    @Published var selectedDocuments: Set<ListItemCellViewModel> = []
     
     private var isConnected = true
     private let monitor = NWPathMonitor()
@@ -23,7 +24,7 @@ class ViewModel: ObservableObject {
     let serviceProtocol: ServiceProtocols
     let databaseHandler: CoreDataDelegate
     
-    init(serviceProtocol: ServiceProtocols = WebServices(url: .articalSearch), databaseHandler: CoreDataDelegate = CoreDataManager()) {
+    init(serviceProtocol: ServiceProtocols = WebServices(), databaseHandler: CoreDataDelegate = CoreDataManager()) {
         // Dependiency Inverse
         self.serviceProtocol = serviceProtocol
         self.databaseHandler = databaseHandler
@@ -34,7 +35,7 @@ class ViewModel: ObservableObject {
         if isConnected {
             isLoading = true
             do {
-                let result  = try await serviceProtocol.getGenericData(returnType: DocsResponse.self)
+                let result  = try await serviceProtocol.getGenericData(url: .articalSearch, returnType: DocsResponse.self)
                 self.docs = result.response?.docs ?? []
                 self.mapData()
                 self.isLoading = false
@@ -44,7 +45,8 @@ class ViewModel: ObservableObject {
                 self.errorMessage = (error as? CumstomError)?.localizeDescription ?? error.localizedDescription
             }
         } else {
-            do {
+            do { // we can add url here if we are reading data from local file, you can remove extension if you want to pass url or url as nil
+                // let result = try await databaseHandler.getGenericData(url: nil, returnType: [Doc].self)
                 let result = try await databaseHandler.getGenericData(returnType: [Doc].self)
                 self.docs = result
                 self.mapData()
@@ -92,7 +94,6 @@ class ViewModel: ObservableObject {
         monitor.start(queue: queue)
     }
     
-    @MainActor
     func updateIsConnected(_ status: NWPath.Status) {
         isConnected = status == .satisfied
     }
